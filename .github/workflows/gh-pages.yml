@@ -1,0 +1,73 @@
+name: github pages
+
+
+on:
+ schedule:
+  - cron: "0 18 */8 * *"
+ push:
+   branches:
+   - main
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: gh-pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: [ubicloud-standard-16] #self-hosted
+    outputs:
+      artifact-name: ${{ steps.upload-artifact.outputs.artifact-name }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        repository: Project-Gutenberg/Pincong-data-2026
+
+    # 仅用于诊断：查看当前 repo 的对象库大小（包含 size-pack）
+    - name: Log git object store size
+      shell: bash
+      run: |
+        echo "==== git count-objects -Hv ===="
+        git count-objects -Hv
+        echo "==== size-pack only ===="
+        git count-objects -Hv | sed -n 's/^size-pack: //p'
+
+    - name: Process tags
+      run: chmod +x ./main && ./main tag
+
+    - name: Setup Hugo
+      uses: peaceiris/actions-hugo@v2
+      with:
+        hugo-version: '0.100.2'
+        extended: true
+
+    - name: Build Hogo
+      run: hugo --minify --config github.toml,base.toml -d ../public -s site
+
+    - name: Split Sitemap
+      run: ./main sitemap ./public/
+
+     # 重要：把构建好的静态文件上传成 artifact，给后面的 deploy job 用
+    - name: Upload site artifact
+      id: upload-artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        name: site-public
+        path: public
+        retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: site-public
