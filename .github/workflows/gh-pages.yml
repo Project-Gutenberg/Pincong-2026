@@ -18,7 +18,8 @@ concurrency:
 
 jobs:
   build:
-    runs-on: [ubicloud-standard-16] #self-hosted
+    # runs-on: [ubicloud-standard-16] #self-hosted
+    runs-on: ubuntu-latest
     outputs:
       artifact-name: ${{ steps.upload-artifact.outputs.artifact-name }}
     steps:
