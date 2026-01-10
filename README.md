@@ -13,9 +13,9 @@
 
 如: 关键词 "翻车新闻" 页面为 https://project-gutenberg.github.io/Pincong/tags/翻车新闻/ rss 地址则为 https://project-gutenberg.github.io/Pincong/tags/翻车新闻/index.xml
 
-1. [首页](https://project-gutenberg.github.io/Pincong/post/index.xml)
+1. [首页](https://project-gutenberg.github.io/Pincong-2026/post/index.xml)
 2. [翻车新闻](https://project-gutenberg.github.io/Pincong/tags/翻车新闻/index.xml)
 3. [朝鲜战争](https://project-gutenberg.github.io/Pincong/tags/朝鲜战争/index.xml)
 4. [作者 劳伦斯](https://project-gutenberg.github.io/Pincong/author/劳伦斯/index.xml)
 
-[Github Pages 地址](https://project-gutenberg.github.io/Pincong/)
+[Github Pages 地址](https://project-gutenberg.github.io/Pincong-2026/)
