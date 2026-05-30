@@ -5,7 +5,9 @@ on:
   - cron: "0 18 */8 * *"
  push:
    branches:
-   - main
+    - main
+   paths-ignore:
+    - ".github/keepalive.txt"
 permissions:
   contents: read
   pages: write
