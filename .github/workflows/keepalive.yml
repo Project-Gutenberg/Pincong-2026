@@ -1,0 +1,77 @@
+name: keep repository active
+
+on:
+  workflow_dispatch:
+  schedule:
+    # GitHub cron 使用 UTC。
+    # 每天检查一次；真正提交由脚本判断，约每 59 天一次。
+    # 不用 "0 0 * * *"，避开整点高峰。
+    - cron: "37 18 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: keep-repo-active-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Update keepalive file every 59 days
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          FILE=".github/keepalive.txt"
+          NOW_EPOCH="$(date -u +%s)"
+          NOW_ISO="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+          mkdir -p "$(dirname "$FILE")"
+
+          if [ -f "$FILE" ]; then
+            LAST_ISO="$(sed -n 's/^last_update_utc=//p' "$FILE" | head -n 1 || true)"
+          else
+            LAST_ISO=""
+          fi
+
+          if [ -n "$LAST_ISO" ]; then
+            LAST_EPOCH="$(date -u -d "$LAST_ISO" +%s 2>/dev/null || echo 0)"
+          else
+            LAST_EPOCH=0
+          fi
+
+          AGE_DAYS=$(( (NOW_EPOCH - LAST_EPOCH) / 86400 ))
+
+          echo "Last keepalive: ${LAST_ISO:-never}"
+          echo "Age days: $AGE_DAYS"
+
+          if [ "$AGE_DAYS" -lt 59 ]; then
+            echo "No update needed."
+            exit 0
+          fi
+
+          {
+            echo "last_update_utc=$NOW_ISO"
+            echo "purpose=prevent GitHub scheduled workflows from being disabled after 60 days of repository inactivity"
+          } > "$FILE"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add "$FILE"
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "chore: keep repository active [skip ci]"
+          git push
