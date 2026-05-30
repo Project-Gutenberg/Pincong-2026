@@ -1,0 +1,2 @@
+last_update_utc=2026-05-30T15:30:37Z
+purpose=prevent GitHub scheduled workflows from being disabled after 60 days of repository inactivity
