@@ -52,6 +52,9 @@ jobs:
     - name: Split Sitemap
       run: ./main sitemap ./public/
 
+    - name: Fix sitemap index base URL
+      run: sed -i 's#https://project-gutenberg.github.io/Pincong/#https://project-gutenberg.github.io/Pincong-2026/#g' ./public/sitemap-index.xml
+
      # 重要：把构建好的静态文件上传成 artifact，给后面的 deploy job 用
     - name: Upload site artifact
       id: upload-artifact
